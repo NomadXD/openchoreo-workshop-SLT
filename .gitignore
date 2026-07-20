@@ -1,0 +1,14 @@
+# OS / editor
+.DS_Store
+*.swp
+.idea/
+.vscode/
+
+# Local scratch / downloaded charts
+*.tgz
+/tmp/
+scratch/
+
+# Kube / helm local state
+kubeconfig*
+*.kubeconfig
