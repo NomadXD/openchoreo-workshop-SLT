@@ -17,11 +17,24 @@ local [k3d](https://k3d.io) cluster.
 ## Structure
 
 ```
-README.md                       # Landing page: audience, version matrix, step index
+README.md                       # Landing page: audience, version matrix, step index, scenarios
 docs/installation/
   README.md                     # Installation overview: the four planes + version table
   00-prerequisites.md .. 08-cleanup.md   # Ordered steps, read/executed in sequence
+docs/scenarios/
+  README.md                     # Scenarios index (table of scenarios)
+  01-build-from-source/
+    README.md                   # Portal-driven walkthrough, ordered steps
+    images/                     # Screenshots referenced by the walkthrough
 ```
+
+Scenarios run **on top of** the installed environment and are **console-driven** (Backstage
+developer portal at `http://openchoreo.localhost:8080`), not `kubectl`-driven — the opposite
+emphasis from the installation guide. Each scenario step embeds a screenshot from `images/`; when a
+scenario's UI flow changes, re-capture the screenshots (drive the live console with the browser
+tools) rather than hand-editing prose alone. Scenario 1 deploys the Go greeter
+(`openchoreo/sample-workloads` → `service-go-greeter`) via **Build from Source** using the
+`dockerfile-builder` workflow.
 
 Untracked working files may appear at the repo root (e.g. a downloaded Helm chart directory like
 `openchoreo-control-plane/`, or scratch YAML). These are local scratch used while verifying the

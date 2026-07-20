@@ -52,6 +52,18 @@ one-page summary.
 
 ---
 
+## Scenarios
+
+Once the environment is up, work through the hands-on scenarios — portal-driven walkthroughs (with
+screenshots) that deploy real workloads onto your cluster. See the
+[scenarios index](docs/scenarios/README.md).
+
+| # | Scenario | What you learn | Time |
+|---|----------|----------------|------|
+| 1 | [Build a service from source](docs/scenarios/01-build-from-source/README.md) | Deploy the Go greeter straight from Git — OpenChoreo builds the image in-cluster from a `Dockerfile`, then deploys and exposes it | ~15 min |
+
+---
+
 ## Version matrix
 
 This workshop is pinned to a specific, tested set of versions. See the
