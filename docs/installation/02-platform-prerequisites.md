@@ -19,9 +19,9 @@ curl -fsSL "${RAW_BASE}/install/k3d/k3d-prerequisites.sh" | OPENCHOREO_REF="${OP
 
 This takes a few minutes (cert-manager, ESO, kgateway, and OpenBao each wait to become ready).
 
-> **What gets seeded into OpenBao:** placeholder secrets for Backstage, the observer OAuth client,
-> and **OpenSearch** credentials (`opensearch-username` / `opensearch-password`). On the
-> `release-v1.1` line these seeds **do not** include OpenObserve credentials — we add those manually
+> **What gets seeded into OpenBao:** placeholder secrets for Backstage and the observer OAuth
+> client (plus OpenSearch credentials the stock install uses). Since the default v1.2 install is
+> OpenSearch-based, these seeds **do not** include OpenObserve credentials — we add those manually
 > in [step 6](06-observability-plane-openobserve.md). Keep this in mind; it's the one place this
 > workshop diverges from the default install.
 
@@ -37,7 +37,7 @@ above.
 
 ```bash
 kubectl apply --server-side \
-  -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.4.1/experimental-install.yaml
+  -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.5.1/experimental-install.yaml
 ```
 
 ### cert-manager
@@ -65,11 +65,11 @@ helm upgrade --install external-secrets oci://ghcr.io/external-secrets/charts/ex
 ```bash
 helm upgrade --install kgateway-crds oci://cr.kgateway.dev/kgateway-dev/charts/kgateway-crds \
   --create-namespace --namespace openchoreo-control-plane \
-  --version v2.2.1
+  --version v2.3.1
 
 helm upgrade --install kgateway oci://cr.kgateway.dev/kgateway-dev/charts/kgateway \
   --namespace openchoreo-control-plane --create-namespace \
-  --version v2.2.1 \
+  --version v2.3.1 \
   --set controller.extraEnv.KGW_ENABLE_GATEWAY_API_EXPERIMENTAL_FEATURES=true
 ```
 

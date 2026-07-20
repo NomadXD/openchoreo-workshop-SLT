@@ -58,14 +58,15 @@ consistent.
 
 | Component | Version | Source |
 |-----------|---------|--------|
-| OpenChoreo (all core charts) | `1.1.2` (git ref `release-v1.1`) | `oci://ghcr.io/openchoreo/helm-charts/*` |
-| OpenObserve **logs** module | `0.4.2` | `oci://ghcr.io/openchoreo/helm-charts/observability-logs-openobserve` |
+| OpenChoreo (all core charts) | `1.2.0-rc.1` (git ref `release-v1.2.0-rc.1`) | `oci://ghcr.io/openchoreo/helm-charts/*` |
+| OpenObserve **logs** module | `0.5.1` | `oci://ghcr.io/openchoreo/helm-charts/observability-logs-openobserve` |
 | OpenObserve **tracing** module | `0.2.4` | `oci://ghcr.io/openchoreo/helm-charts/observability-tracing-openobserve` |
 | **metrics** module (Prometheus) | `0.6.1` | `oci://ghcr.io/openchoreo/helm-charts/observability-metrics-prometheus` |
 | Thunder (identity) | `0.28.0` | `oci://ghcr.io/asgardeo/helm-charts/thunder` |
+| Gateway API CRDs | `v1.5.1` | `github.com/kubernetes-sigs/gateway-api` |
 | cert-manager | `v1.19.4` | `oci://quay.io/jetstack/charts/cert-manager` |
 | External Secrets Operator | `2.0.1` | `oci://ghcr.io/external-secrets/charts/external-secrets` |
-| kgateway | `v2.2.1` | `oci://cr.kgateway.dev/kgateway-dev/charts/kgateway` |
+| kgateway | `v2.3.1` | `oci://cr.kgateway.dev/kgateway-dev/charts/kgateway` |
 | OpenBao | `0.25.6` | `oci://ghcr.io/openbao/charts/openbao` |
 
 ### Shell variables used throughout
@@ -73,8 +74,8 @@ consistent.
 Export these once per terminal session; the guide's commands reference them:
 
 ```bash
-export OPENCHOREO_REF=release-v1.1
-export OPENCHOREO_VERSION=1.1.2
+export OPENCHOREO_REF=release-v1.2.0-rc.1
+export OPENCHOREO_VERSION=1.2.0-rc.1
 export RAW_BASE="https://raw.githubusercontent.com/openchoreo/openchoreo/${OPENCHOREO_REF}"
 ```
 

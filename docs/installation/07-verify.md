@@ -59,17 +59,22 @@ curl "http://${HOSTNAME}:19080${PATH_PREFIX}/greeter/greet"
 
 You should get a greeting response.
 
-## 7.4 See logs in OpenObserve
+## 7.4 See logs and traces
 
-With a component running, its container logs flow into OpenObserve (via Fluent Bit). Open the
-OpenObserve console as described in
-[step 6.9 / "Open the OpenObserve console"](06-observability-plane-openobserve.md#open-the-openobserve-console),
-go to **Logs**, pick the log stream, and filter for your component (e.g. `react-starter` or
-`greeting-service`). Traces for instrumented services appear under **Traces**.
+With a component running, its container logs flow into OpenObserve (via Fluent Bit). On v1.2 you can
+view them in **either** console:
 
-> Reminder ([caveats](06-observability-plane-openobserve.md#caveats-on-v11)): on v1.1 the
-> OpenObserve console is the reliable place to view logs/traces. The OpenChoreo console's Runtime
-> Logs tab is wired for OpenSearch and may not surface OpenObserve data.
+- **OpenChoreo console** — open your component and check the **Runtime Logs** / **Traces** tabs. The
+  observer reads OpenObserve through the logs/tracing adapters it points at by default (see
+  [step 6.5](06-observability-plane-openobserve.md#65-install-the-observability-plane-core)).
+- **OpenObserve console** — open it as described in
+  [step 6 / "Open the OpenObserve console"](06-observability-plane-openobserve.md#open-the-openobserve-console),
+  go to **Logs**, pick the log stream, and filter for your component (e.g. `react-starter` or
+  `greeting-service`). Traces for instrumented services appear under **Traces**.
+
+> If the OpenChoreo console's Runtime Logs/Traces tabs come up empty, see the troubleshooting notes
+> at the end of [step 6](06-observability-plane-openobserve.md#open-the-openobserve-console) — the
+> OpenObserve console is a good fallback for confirming data is actually being collected.
 
 ## Full-install sanity check
 

@@ -34,17 +34,16 @@ kubectl cluster-info
 # Cluster is listed and running
 k3d cluster list
 
-# Nodes are Ready (1 server + 2 agents)
+# Node is Ready
 kubectl get nodes
 ```
 
-You should see three nodes in `Ready` state:
+The `single-cluster` config runs everything on a **single node**. You should see it in `Ready`
+state (the exact Kubernetes version depends on your k3d release):
 
 ```
-NAME                       STATUS   ROLES                  AGE   VERSION
-k3d-openchoreo-server-0    Ready    control-plane,master   1m    v1.32.x+k3s1
-k3d-openchoreo-agent-0     Ready    <none>                 1m    v1.32.x+k3s1
-k3d-openchoreo-agent-1     Ready    <none>                 1m    v1.32.x+k3s1
+NAME                      STATUS   ROLES           AGE   VERSION
+k3d-openchoreo-server-0   Ready    control-plane   1m    v1.31.x+k3s1
 ```
 
 > **Troubleshooting**

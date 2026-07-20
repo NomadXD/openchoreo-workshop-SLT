@@ -1,30 +1,24 @@
 # Step 6 — Observability plane (OpenObserve)
 
-The observability plane collects **logs, traces, and metrics** from the other planes. The default
-OpenChoreo install uses **OpenSearch** for logs and traces. In this workshop we swap those for
+The observability plane collects **logs, traces, and metrics** from the other planes. The stock
+OpenChoreo v1.2 install uses **OpenSearch** for logs and traces. In this workshop we swap those for
 **[OpenObserve](https://openobserve.ai/)** — a lighter, Rust-based observability backend — while
 keeping **Prometheus** for metrics.
 
-This step is where the workshop diverges most from the stock install, so read the
-[caveats](#caveats-on-v11) first.
+## How this differs from the stock install
 
-## <a id="caveats-on-v11"></a>⚠️ Caveats on v1.1
+On the **v1.2** line OpenObserve is a first-class, documented backend, so this swap is
+straightforward:
 
-We pin OpenChoreo to **v1.1.2 (GA)**. OpenObserve is a first-class, documented backend on the
-OpenChoreo **v1.2** line; on v1.1 the situation is:
+| What we change | How it works |
+|----------------|--------------|
+| Install the OpenObserve **logs** (`0.5.1`) and **tracing** (`0.2.4`) modules instead of the OpenSearch ones | Each module ships an *adapter* service the observer queries (`logs-adapter`, `tracing-adapter`) |
+| Point the observer at the OpenObserve module adapters (default `observer.logsAdapter.url` / `observer.tracingAdapter.url`, see [6.5](#65-install-the-observability-plane-core)) | The **OpenChoreo console**'s Runtime Logs/Traces tabs read OpenObserve data through those adapters — no OpenSearch wiring involved |
+| Seed OpenObserve admin credentials into OpenBao ([6.2](#62-seed-openobserve-credentials-into-openbao)) | The default install only seeds OpenSearch creds, so we add the OpenObserve ones ourselves |
+| Fluent Bit ships container logs into OpenObserve; the tracing module receives traces | Prometheus metrics work exactly as in the stock install |
 
-| What works | What to know |
-|------------|--------------|
-| OpenObserve installs and runs (logs `0.4.2`, tracing `0.2.4`, both `v1.0.x+` compatible) | These module versions predate the v1.2 console integration |
-| Fluent Bit ships container logs into OpenObserve; the OTel collector ships traces | You view them in the **OpenObserve console**, not (necessarily) the OpenChoreo console |
-| Prometheus metrics work as normal | The v1.1 control-plane *observer* service is wired for OpenSearch (`openSearchSecretName`), so the OpenChoreo console's **Runtime Logs** tab may show nothing for OpenObserve-backed logs |
-| release-v1.1 seeds OpenSearch creds into OpenBao | It does **not** seed OpenObserve creds — we add them manually in [6.2](#62-seed-openobserve-credentials-into-openbao) |
-
-**Bottom line for the workshop:** treat OpenObserve's own UI as the source of truth for logs/traces
-here. If you need the console-integrated experience, install from the v1.2 line instead. Everything
-below has been assembled from the OpenObserve module docs and the OpenChoreo install flow; the
-observer↔OpenObserve console wiring on v1.1 is **not guaranteed** and is the one part to expect to
-troubleshoot.
+You can view logs and traces in **either** the OpenObserve console (see [the end of this
+step](#open-the-openobserve-console)) **or** the OpenChoreo console's Runtime Logs/Traces tabs.
 
 ## 6.1 Create the namespace and trust the control-plane CA
 
@@ -41,8 +35,8 @@ kubectl create configmap cluster-gateway-ca \
 
 ## 6.2 Seed OpenObserve credentials into OpenBao
 
-On `release-v1.1`, OpenBao is **not** seeded with OpenObserve credentials, so we add them. OpenBao
-runs in dev mode with root token `root` on `127.0.0.1:8200` inside the pod:
+The stock (OpenSearch-based) install does **not** seed OpenObserve credentials into OpenBao, so we
+add them. OpenBao runs in dev mode with root token `root` on `127.0.0.1:8200` inside the pod:
 
 ```bash
 kubectl exec -n openbao openbao-0 -- sh -c '
@@ -59,14 +53,14 @@ kubectl exec -n openbao openbao-0 -- sh -c '
 
 ## 6.3 Create the ExternalSecrets
 
-Two sets of credentials are needed:
+Two credentials are needed:
 
 1. **`openobserve-admin-credentials`** — consumed by the OpenObserve modules (keys
-   `ZO_ROOT_USER_EMAIL` / `ZO_ROOT_USER_PASSWORD`).
-2. **`opensearch-admin-credentials`** and **`observer-secret`** — the v1.1 *observer* core service
-   still mounts these at startup even though we're not running OpenSearch. Creating them keeps the
-   observer pod from failing on a missing secret. (These read seeds that `release-v1.1` *does*
-   provide.)
+   `ZO_ROOT_USER_EMAIL` / `ZO_ROOT_USER_PASSWORD`), including the single-node OpenObserve the logs
+   module brings up.
+2. **`observer-secret`** — referenced by the observability-plane core chart
+   (`observer.secretName`). On v1.2 the observer reaches logs and traces through the module adapter
+   services, so the only key it needs here is the UID resolver's OAuth client secret.
 
 ```bash
 kubectl apply -f - <<'EOF'
@@ -93,30 +87,7 @@ spec:
       key: openobserve-admin-password
       property: value
 ---
-# --- OpenSearch admin credentials (mounted by the v1.1 observer core) ---
-apiVersion: external-secrets.io/v1
-kind: ExternalSecret
-metadata:
-  name: opensearch-admin-credentials
-  namespace: openchoreo-observability-plane
-spec:
-  refreshInterval: 1h
-  secretStoreRef:
-    kind: ClusterSecretStore
-    name: default
-  target:
-    name: opensearch-admin-credentials
-  data:
-  - secretKey: username
-    remoteRef:
-      key: opensearch-username
-      property: value
-  - secretKey: password
-    remoteRef:
-      key: opensearch-password
-      property: value
----
-# --- Observer service secret (v1.1 observer core) ---
+# --- Observer service secret (observability-plane core) ---
 apiVersion: external-secrets.io/v1
 kind: ExternalSecret
 metadata:
@@ -130,14 +101,6 @@ spec:
   target:
     name: observer-secret
   data:
-  - secretKey: OPENSEARCH_USERNAME
-    remoteRef:
-      key: opensearch-username
-      property: value
-  - secretKey: OPENSEARCH_PASSWORD
-    remoteRef:
-      key: opensearch-password
-      property: value
   - secretKey: UID_RESOLVER_OAUTH_CLIENT_SECRET
     remoteRef:
       key: observer-oauth-client-secret
@@ -147,7 +110,6 @@ EOF
 kubectl wait -n openchoreo-observability-plane \
   --for=condition=Ready \
   externalsecret/openobserve-admin-credentials \
-  externalsecret/opensearch-admin-credentials \
   externalsecret/observer-secret --timeout=60s
 ```
 
@@ -163,7 +125,10 @@ docker exec k3d-openchoreo-server-0 sh -c \
 ## 6.5 Install the observability-plane core
 
 This installs the observer API, RCA/FinOps agents, and the gateway — the shared services that sit in
-front of the pluggable logs/traces/metrics modules:
+front of the pluggable logs/traces/metrics modules. On v1.2 the observer's **logs and tracing
+adapters** are wired by default (via `observer.logsAdapter.url` / `observer.tracingAdapter.url`,
+which point at the `logs-adapter` / `tracing-adapter` services the OpenObserve modules ship), so no
+extra flags are needed here:
 
 ```bash
 helm upgrade --install openchoreo-observability-plane oci://ghcr.io/openchoreo/helm-charts/openchoreo-observability-plane \
@@ -172,6 +137,14 @@ helm upgrade --install openchoreo-observability-plane oci://ghcr.io/openchoreo/h
   --values "${RAW_BASE}/install/k3d/single-cluster/values-op.yaml" \
   --timeout 25m
 ```
+
+> **On chart `1.2.0-rc.1` the adapters have no `enabled` flag** — earlier drafts of this guide passed
+> `--set observer.logsAdapter.enabled=true` / `--set observer.tracingAdapter.enabled=true`, but the
+> chart's values schema rejects those keys (it only exposes `url` / `timeout`). The observer always
+> queries the default `logs-adapter:9098` / `tracing-adapter:9100` URLs, which is exactly what wires
+> OpenObserve into the OpenChoreo console. Just install the OpenObserve modules
+> ([6.7](#67-install-the-openobserve-logs-module), [6.8](#68-install-the-openobserve-tracing-module))
+> so those services exist before expecting the console's Runtime Logs/Traces tabs to return data.
 
 ## 6.6 Install the metrics module (Prometheus)
 
@@ -193,7 +166,7 @@ helm upgrade --install observability-logs-openobserve \
   oci://ghcr.io/openchoreo/helm-charts/observability-logs-openobserve \
   --create-namespace \
   --namespace openchoreo-observability-plane \
-  --version 0.4.2
+  --version 0.5.1
 ```
 
 Then enable **log collection** — this turns on the Fluent Bit DaemonSet that tails container logs
@@ -203,7 +176,7 @@ and ships them to OpenObserve:
 helm upgrade observability-logs-openobserve \
   oci://ghcr.io/openchoreo/helm-charts/observability-logs-openobserve \
   --namespace openchoreo-observability-plane \
-  --version 0.4.2 \
+  --version 0.5.1 \
   --reuse-values \
   --set fluent-bit.enabled=true
 ```
@@ -301,8 +274,14 @@ streams here, and traces (for instrumented services) under the traces view.
 > - *No logs appearing* — check the Fluent Bit DaemonSet is `Running` on all nodes and that
 >   `fluent-bit.enabled=true` from [6.7](#67-install-the-openobserve-logs-module) actually rolled
 >   out (`helm get values observability-logs-openobserve -n openchoreo-observability-plane`).
-> - *Observer pod not starting* — it mounts `observer-secret` / `opensearch-admin-credentials`;
->   confirm those ExternalSecrets synced in [6.3](#63-create-the-externalsecrets).
+> - *Observer pod not starting* — it mounts `observer-secret`; confirm that ExternalSecret synced in
+>   [6.3](#63-create-the-externalsecrets).
+> - *OpenObserve data missing in the OpenChoreo console* — confirm the module `logs-adapter` /
+>   `tracing-adapter` services and pods are `Running` in `openchoreo-observability-plane`, and that
+>   the observer's default adapter URLs still match them (`kubectl get svc -n
+>   openchoreo-observability-plane | grep -iE 'logs-adapter|tracing-adapter'` should show
+>   `logs-adapter:9098` / `tracing-adapter:9100`). The OpenObserve console (below) always works
+>   regardless.
 
 ---
 

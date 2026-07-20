@@ -59,17 +59,18 @@ This workshop is pinned to a specific, tested set of versions. See the
 
 | Component | Version |
 |-----------|---------|
-| OpenChoreo | `v1.1.2` (GA) |
-| OpenObserve logs module | `0.4.2` |
+| OpenChoreo | `v1.2.0-rc.1` (release candidate) |
+| OpenObserve logs module | `0.5.1` |
 | OpenObserve tracing module | `0.2.4` |
 | Metrics (Prometheus) module | `0.6.1` |
 
-> **Note on OpenObserve + v1.1:** OpenObserve is a first-class, documented backend on the
-> OpenChoreo **v1.2** line. On **v1.1.2** the OpenObserve modules install and collect data, but the
-> control-plane *observer* service is wired for OpenSearch, so in this workshop you view logs and
-> traces directly in the **OpenObserve console**. The relevant caveats are called out inline in
-> [step 6](docs/installation/06-observability-plane-openobserve.md#caveats-on-v11). If you would
-> rather have the console-integrated experience, use the v1.2 line instead.
+> **Note on OpenObserve + v1.2:** OpenObserve is a first-class, documented backend on the OpenChoreo
+> **v1.2** line. The stock v1.2 install uses OpenSearch for logs and traces; this workshop swaps in
+> **OpenObserve** instead. Because the v1.2 *observer* service talks to pluggable logs/tracing
+> adapters (pointed at the OpenObserve modules by default via `observer.logsAdapter.url` /
+> `observer.tracingAdapter.url`), OpenObserve-backed logs and traces now surface in the
+> **OpenChoreo console** as well as the OpenObserve console. The setup is described inline in
+> [step 6](docs/installation/06-observability-plane-openobserve.md).
 
 ## References
 

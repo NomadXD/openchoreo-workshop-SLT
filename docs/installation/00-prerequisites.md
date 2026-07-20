@@ -58,8 +58,8 @@ colima start --cpu 4 --memory 12 --vm-type vz --vz-rosetta
 Open the terminal you'll use for the whole workshop and export the pinned versions once:
 
 ```bash
-export OPENCHOREO_REF=release-v1.1
-export OPENCHOREO_VERSION=1.1.2
+export OPENCHOREO_REF=release-v1.2.0-rc.1
+export OPENCHOREO_VERSION=1.2.0-rc.1
 export RAW_BASE="https://raw.githubusercontent.com/openchoreo/openchoreo/${OPENCHOREO_REF}"
 ```
 
