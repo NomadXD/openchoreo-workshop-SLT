@@ -12,6 +12,6 @@ for every step.
 | # | Scenario | What you learn | Time |
 |---|----------|----------------|------|
 | 1 | [Build a service from source](01-build-from-source/README.md) | Deploy the Go greeter straight from Git — OpenChoreo builds the image in-cluster from a `Dockerfile`, then deploys and exposes it | ~15 min |
+| 2 | [A multi-service app with self-service infra](02-doclet/README.md) | Provision managed Postgres and NATS on demand, then deploy and wire together a three-component app (Doclet) — resource and component dependencies, all in the console | ~25 min |
 
-More scenarios will be added over time (deploy from a pre-built image, promote across environments,
-multi-component projects, and observability).
+More scenarios will be added over time (promote across environments and observability).
