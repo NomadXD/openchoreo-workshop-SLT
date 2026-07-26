@@ -61,6 +61,8 @@ screenshots) that deploy real workloads onto your cluster. See the
 | # | Scenario | What you learn | Time |
 |---|----------|----------------|------|
 | 1 | [Build a service from source](docs/scenarios/01-build-from-source/README.md) | Deploy the Go greeter straight from Git — OpenChoreo builds the image in-cluster from a `Dockerfile`, then deploys and exposes it | ~15 min |
+| 2 | [A multi-service app with self-service infra](docs/scenarios/02-doclet/README.md) | Provision managed Postgres and NATS on demand, then deploy and wire together a three-component app (Doclet) | ~25 min |
+| 3 | [One service, two doors: external and internal endpoints](docs/scenarios/03-endpoint-visibility/README.md) | Publish one service at both **External** and **Internal** visibility, attach its OpenAPI schema, and call it from the console's **Try Out** page | ~15 min |
 
 ---
 
