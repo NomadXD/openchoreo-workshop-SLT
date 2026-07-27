@@ -1,0 +1,90 @@
+apiVersion: openchoreo.dev/v1alpha1
+kind: ClusterTrait
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"openchoreo.dev/v1alpha1","kind":"ClusterTrait","metadata":{"annotations":{},"name":"json-xml-mediation"},"spec":{"creates":[{"template":{"apiVersion":"gateway.kgateway.dev/v1alpha1","kind":"Backend","metadata":{"name":"${metadata.componentName}-json-xml-gw-backend","namespace":"${metadata.namespace}"},"spec":{"static":{"hosts":[{"host":"api-platform-default-gateway-gateway-runtime.openchoreo-data-plane","port":8080}]},"type":"Static"}}},{"template":{"apiVersion":"gateway.api-platform.wso2.com/v1alpha1","kind":"RestApi","metadata":{"name":"${metadata.name}","namespace":"${metadata.namespace}"},"spec":{"context":"/${metadata.environmentName}-${metadata.componentNamespace}-${metadata.componentName}","displayName":"${metadata.environmentName}-${metadata.componentNamespace}-${metadata.componentName}","operations":[{"method":"GET","path":"/*"},{"method":"POST","path":"/*"},{"method":"PUT","path":"/*"},{"method":"PATCH","path":"/*"},{"method":"DELETE","path":"/*"},{"method":"OPTIONS","path":"/*"}],"policies":"${[{\"name\": \"cors\", \"version\": \"v1\", \"params\": {\"allowedOrigins\": [\"*\"], \"allowedMethods\": [\"*\"], \"allowedHeaders\": [\"*\"]}},\n   {\"name\": \"json-xml-mediator\", \"version\": \"v1\", \"params\": {\"upstreamPayloadFormat\": parameters.upstreamPayloadFormat, \"downsteamPayloadFormat\": parameters.downstreamPayloadFormat}}]}","upstream":{"main":{"url":"http://${metadata.componentName}.${metadata.namespace}:${workload.toServicePorts()[0].port}"}},"version":"v1.0"}}}],"parameters":{"openAPIV3Schema":{"properties":{"downstreamPayloadFormat":{"default":"json","enum":["json","xml"],"type":"string"},"upstreamPayloadFormat":{"default":"xml","enum":["json","xml"],"type":"string"}},"type":"object"}},"patches":[{"operations":[{"op":"replace","path":"/spec/rules/0/backendRefs/[?(@.name=='${metadata.componentName}')]","value":{"group":"gateway.kgateway.dev","kind":"Backend","name":"${metadata.componentName}-json-xml-gw-backend"}},{"op":"replace","path":"/spec/rules/0/filters/0/urlRewrite/path","value":{"replacePrefixMatch":"/${metadata.environmentName}-${metadata.componentNamespace}-${metadata.componentName}","type":"ReplacePrefixMatch"}}],"target":{"group":"gateway.networking.k8s.io","kind":"HTTPRoute","version":"v1"}}]}}
+  creationTimestamp: "2026-07-21T05:42:43Z"
+  generation: 1
+  name: json-xml-mediation
+  resourceVersion: "45214533"
+  uid: 8c121ffd-bf38-47dc-b29d-4d548f9da993
+spec:
+  creates:
+  - targetPlane: dataplane
+    template:
+      apiVersion: gateway.kgateway.dev/v1alpha1
+      kind: Backend
+      metadata:
+        name: ${metadata.componentName}-json-xml-gw-backend
+        namespace: ${metadata.namespace}
+      spec:
+        static:
+          hosts:
+          - host: api-platform-default-gateway-gateway-runtime.openchoreo-data-plane
+            port: 8080
+        type: Static
+  - targetPlane: dataplane
+    template:
+      apiVersion: gateway.api-platform.wso2.com/v1alpha1
+      kind: RestApi
+      metadata:
+        name: ${metadata.name}
+        namespace: ${metadata.namespace}
+      spec:
+        context: /${metadata.environmentName}-${metadata.componentNamespace}-${metadata.componentName}
+        displayName: ${metadata.environmentName}-${metadata.componentNamespace}-${metadata.componentName}
+        operations:
+        - method: GET
+          path: /*
+        - method: POST
+          path: /*
+        - method: PUT
+          path: /*
+        - method: PATCH
+          path: /*
+        - method: DELETE
+          path: /*
+        - method: OPTIONS
+          path: /*
+        policies: |-
+          ${[{"name": "cors", "version": "v1", "params": {"allowedOrigins": ["*"], "allowedMethods": ["*"], "allowedHeaders": ["*"]}},
+             {"name": "json-xml-mediator", "version": "v1", "params": {"upstreamPayloadFormat": parameters.upstreamPayloadFormat, "downsteamPayloadFormat": parameters.downstreamPayloadFormat}}]}
+        upstream:
+          main:
+            url: http://${metadata.componentName}.${metadata.namespace}:${workload.toServicePorts()[0].port}
+        version: v1.0
+  parameters:
+    openAPIV3Schema:
+      properties:
+        downstreamPayloadFormat:
+          default: json
+          enum:
+          - json
+          - xml
+          type: string
+        upstreamPayloadFormat:
+          default: xml
+          enum:
+          - json
+          - xml
+          type: string
+      type: object
+  patches:
+  - operations:
+    - op: replace
+      path: /spec/rules/0/backendRefs/[?(@.name=='${metadata.componentName}')]
+      value:
+        group: gateway.kgateway.dev
+        kind: Backend
+        name: ${metadata.componentName}-json-xml-gw-backend
+    - op: replace
+      path: /spec/rules/0/filters/0/urlRewrite/path
+      value:
+        replacePrefixMatch: /${metadata.environmentName}-${metadata.componentNamespace}-${metadata.componentName}
+        type: ReplacePrefixMatch
+    target:
+      group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      version: v1
+    targetPlane: dataplane

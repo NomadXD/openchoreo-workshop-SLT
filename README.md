@@ -64,6 +64,7 @@ screenshots) that deploy real workloads onto your cluster. See the
 | 2 | [A multi-service app with self-service infra](docs/scenarios/02-doclet/README.md) | Provision managed Postgres and NATS on demand, then deploy and wire together a three-component app (Doclet) | ~25 min |
 | 3 | [One service, two doors: external and internal endpoints](docs/scenarios/03-endpoint-visibility/README.md) | Publish one service at both **External** and **Internal** visibility, attach its OpenAPI schema, and call it from the console's **Try Out** page | ~15 min |
 | 4 | [Put an API gateway in front: auth, rate limiting, response headers](docs/scenarios/04-api-management/README.md) | Attach the `api-management` trait — JWT auth, 3 requests/minute, and an injected `x-powered-by` header — and watch `401`/`200`/`429` in **Try Out** | ~20 min |
+| 5 | [Speak JSON to an XML service: request/response mediation](docs/scenarios/05-json-xml-mediation/README.md) | Publish a gateway policy as your own `ClusterTrait`, then attach it so the gateway converts JSON↔XML in both directions — the container never changes | ~20 min |
 
 ---
 

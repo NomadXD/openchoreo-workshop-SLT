@@ -1,0 +1,89 @@
+apiVersion: openchoreo.dev/v1alpha1
+kind: ClusterTrait
+metadata:
+  name: json-xml-mediation
+spec:
+  # Developers pick the two payload formats; everything else is fixed by the platform.
+  parameters:
+    openAPIV3Schema:
+      type: object
+      properties:
+        upstreamPayloadFormat:
+          type: string
+          enum:
+            - json
+            - xml
+          default: xml
+        downstreamPayloadFormat:
+          type: string
+          enum:
+            - json
+            - xml
+          default: json
+  creates:
+    # A static Backend pointing at the API gateway runtime, so the component's
+    # HTTPRoutes can be re-pointed at the gateway instead of the pod.
+    - targetPlane: dataplane
+      template:
+        apiVersion: gateway.kgateway.dev/v1alpha1
+        kind: Backend
+        metadata:
+          name: ${metadata.componentName}-json-xml-gw-backend
+          namespace: ${metadata.namespace}
+        spec:
+          type: Static
+          static:
+            hosts:
+              - host: api-platform-default-gateway-gateway-runtime.openchoreo-data-plane
+                port: 8080
+    # Register the component as a REST API on the gateway, with the mediation policy.
+    - targetPlane: dataplane
+      template:
+        apiVersion: gateway.api-platform.wso2.com/v1alpha1
+        kind: RestApi
+        metadata:
+          name: ${metadata.name}
+          namespace: ${metadata.namespace}
+        spec:
+          context: /${metadata.environmentName}-${metadata.componentNamespace}-${metadata.componentName}
+          displayName: ${metadata.environmentName}-${metadata.componentNamespace}-${metadata.componentName}
+          version: v1.0
+          operations:
+            - method: GET
+              path: /*
+            - method: POST
+              path: /*
+            - method: PUT
+              path: /*
+            - method: PATCH
+              path: /*
+            - method: DELETE
+              path: /*
+            - method: OPTIONS
+              path: /*
+          policies: |-
+            ${[{"name": "cors", "version": "v1", "params": {"allowedOrigins": ["*"], "allowedMethods": ["*"], "allowedHeaders": ["*"]}},
+               {"name": "json-xml-mediator", "version": "v1", "params": {"upstreamPayloadFormat": parameters.upstreamPayloadFormat, "downsteamPayloadFormat": parameters.downstreamPayloadFormat}}]}
+          upstream:
+            main:
+              url: http://${metadata.componentName}.${metadata.namespace}:${workload.toServicePorts()[0].port}
+  patches:
+    # Send the component's traffic through the API gateway and strip the OpenChoreo
+    # path prefix so the gateway sees its own API context.
+    - targetPlane: dataplane
+      target:
+        group: gateway.networking.k8s.io
+        version: v1
+        kind: HTTPRoute
+      operations:
+        - op: replace
+          path: /spec/rules/0/backendRefs/[?(@.name=='${metadata.componentName}')]
+          value:
+            group: gateway.kgateway.dev
+            kind: Backend
+            name: ${metadata.componentName}-json-xml-gw-backend
+        - op: replace
+          path: /spec/rules/0/filters/0/urlRewrite/path
+          value:
+            type: ReplacePrefixMatch
+            replacePrefixMatch: /${metadata.environmentName}-${metadata.componentNamespace}-${metadata.componentName}

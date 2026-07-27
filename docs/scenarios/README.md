@@ -15,5 +15,6 @@ for every step.
 | 2 | [A multi-service app with self-service infra](02-doclet/README.md) | Provision managed Postgres and NATS on demand, then deploy and wire together a three-component app (Doclet) — resource and component dependencies, all in the console | ~25 min |
 | 3 | [One service, two doors: external and internal endpoints](03-endpoint-visibility/README.md) | Publish the Go greeter at both **External** and **Internal** visibility from one image, attach its OpenAPI schema, and call it from the console's **Try Out** page | ~15 min |
 | 4 | [Put an API gateway in front: auth, rate limiting, response headers](04-api-management/README.md) | Attach the `api-management` trait to the deployed greeter — JWT auth, 3 requests/minute, and an injected `x-powered-by` header — then exercise `401`/`200`/`429` from **Try Out** | ~20 min |
+| 5 | [Speak JSON to an XML service: request/response mediation](05-json-xml-mediation/README.md) | Publish a gateway policy as your own `ClusterTrait` and register it on a component type, then attach it so the gateway mediates JSON↔XML in both directions — the XML container never changes | ~20 min |
 
 More scenarios will be added over time (promote across environments and observability).
