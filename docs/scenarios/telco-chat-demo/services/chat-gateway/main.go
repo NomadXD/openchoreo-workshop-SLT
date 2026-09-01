@@ -36,9 +36,13 @@ func main() {
 	defer store.Close()
 	log.Println("connected to postgres and ran migrations")
 
-	rdb := redis.NewClient(&redis.Options{Addr: cfg.RedisAddr})
+	redisOpts, err := redis.ParseURL(cfg.RedisURL)
+	if err != nil {
+		log.Fatalf("invalid REDIS_URL: %v", err)
+	}
+	rdb := redis.NewClient(redisOpts)
 	if err := rdb.Ping(ctx).Err(); err != nil {
-		log.Fatalf("failed to connect to redis at %s: %v", cfg.RedisAddr, err)
+		log.Fatalf("failed to connect to redis at %s: %v", redisOpts.Addr, err)
 	}
 	defer rdb.Close()
 	log.Println("connected to redis")
