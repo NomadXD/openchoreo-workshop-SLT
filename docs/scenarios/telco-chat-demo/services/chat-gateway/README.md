@@ -11,7 +11,7 @@ via Redis pub/sub, and writes an audit log for audited tool calls.
 |-------------------|----------------------------|---------------------------------------------------------------|
 | `PORT`            | `8080`                     | HTTP/WS listen port                                            |
 | `DATABASE_URL`    | *(required)*               | Postgres DSN for chat-gateway's own `chat-db`                  |
-| `REDIS_ADDR`      | *(required)*               | `host:port` for Redis, plain TCP, no auth                      |
+| `REDIS_URL`       | *(required)*               | Full Redis connection URL, e.g. `redis://:<password>@host:6379` — parsed with `redis.ParseURL`, so a password-protected instance (the `valkey` `Resource`) works the same as a bare no-auth one (`redis://host:6379`) |
 | `CHAT_AGENT_URL`  | *(required)*               | Base URL of the chat-agent service, e.g. `http://chat-agent:8080` |
 | `JWT_SECRET`      | `dev-secret-change-me`     | HMAC signing secret. A warning is logged if left unset — **do not rely on the default outside this demo.** |
 
@@ -23,7 +23,7 @@ docker run -d --name chat-db -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=chatdb
 docker run -d --name chat-redis -p 6379:6379 redis:7-alpine
 
 export DATABASE_URL="postgres://postgres:postgres@localhost:5432/chatdb?sslmode=disable"
-export REDIS_ADDR="localhost:6379"
+export REDIS_URL="redis://localhost:6379"   # no password against the bare redis:7-alpine image above
 export CHAT_AGENT_URL="http://localhost:9090"   # point at a running chat-agent
 export JWT_SECRET="dev-secret-change-me"
 
@@ -39,7 +39,7 @@ startup via idempotent `CREATE TABLE IF NOT EXISTS` statements — no separate m
 docker build -t chat-gateway .
 docker run --rm -p 8080:8080 \
   -e DATABASE_URL="postgres://postgres:postgres@host.docker.internal:5432/chatdb?sslmode=disable" \
-  -e REDIS_ADDR="host.docker.internal:6379" \
+  -e REDIS_URL="redis://host.docker.internal:6379" \
   -e CHAT_AGENT_URL="http://chat-agent:8080" \
   -e JWT_SECRET="dev-secret-change-me" \
   chat-gateway

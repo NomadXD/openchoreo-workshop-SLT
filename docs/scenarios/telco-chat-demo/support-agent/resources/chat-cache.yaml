@@ -1,0 +1,35 @@
+apiVersion: openchoreo.dev/v1alpha1
+kind: Resource
+metadata:
+  name: chat-cache
+  namespace: default
+spec:
+  owner:
+    projectName: support-agent
+  type:
+    kind: ClusterResourceType
+    name: valkey
+
+---
+apiVersion: openchoreo.dev/v1alpha1
+kind: ResourceReleaseBinding
+metadata:
+  name: chat-cache-development
+  namespace: default
+spec:
+  owner:
+    projectName: support-agent
+    resourceName: chat-cache
+  environment: development
+  retainPolicy: Delete
+  # spec.resourceRelease intentionally unset. The Resource controller
+  # generates a ResourceRelease named chat-cache-<hash>; promote this binding
+  # to that release with `occ resource promote --env development chat-cache`
+  # (or by patching status.latestRelease.name onto this field directly)
+  # before chat-gateway's Workload will find a REDIS_URL to bind to.
+  #
+  # The `valkey` ClusterResourceType always runs with --requirepass — there's
+  # no way to disable auth via its environmentConfigs (only `memory` and
+  # `adminEnabled` are exposed). chat-gateway's `url` envBinding gets the
+  # full `redis://:<password>@host:6379` connection string, which its code
+  # parses with redis.ParseURL — see services/chat-gateway/config.go.

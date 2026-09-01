@@ -35,16 +35,13 @@ spec:
         visibility: project
         envBindings:
           address: CHAT_AGENT_URL
-      - project: support-agent
-        component: chat-cache
-        name: tcp
-        visibility: project
-        envBindings:
-          address: REDIS_ADDR
     resources:
       - ref: chat-db
         envBindings:
           url: DATABASE_URL
+      - ref: chat-cache
+        envBindings:
+          url: REDIS_URL
   container:
     # Built locally — see ../../services/chat-gateway/README.md for the build
     # + image-import steps for your cluster.

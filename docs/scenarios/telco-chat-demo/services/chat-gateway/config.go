@@ -9,7 +9,7 @@ import (
 type Config struct {
 	Port         string
 	DatabaseURL  string
-	RedisAddr    string
+	RedisURL     string
 	ChatAgentURL string
 	JWTSecret    string
 }
@@ -20,7 +20,7 @@ func loadConfig() Config {
 	cfg := Config{
 		Port:         getEnv("PORT", "8080"),
 		DatabaseURL:  os.Getenv("DATABASE_URL"),
-		RedisAddr:    os.Getenv("REDIS_ADDR"),
+		RedisURL:     os.Getenv("REDIS_URL"),
 		ChatAgentURL: os.Getenv("CHAT_AGENT_URL"),
 		JWTSecret:    os.Getenv("JWT_SECRET"),
 	}
@@ -33,8 +33,8 @@ func loadConfig() Config {
 	if cfg.DatabaseURL == "" {
 		log.Printf("WARNING: DATABASE_URL is not set")
 	}
-	if cfg.RedisAddr == "" {
-		log.Printf("WARNING: REDIS_ADDR is not set")
+	if cfg.RedisURL == "" {
+		log.Printf("WARNING: REDIS_URL is not set")
 	}
 	if cfg.ChatAgentURL == "" {
 		log.Printf("WARNING: CHAT_AGENT_URL is not set")

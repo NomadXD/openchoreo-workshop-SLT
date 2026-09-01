@@ -23,9 +23,10 @@ telco-chat-demo/
 │       └── employee-console-ui.yaml
 ├── support-agent/               # Project: support-agent — the chat layer
 │   ├── project.yaml
-│   ├── resources/chat-db.yaml
+│   ├── resources/
+│   │   ├── chat-db.yaml
+│   │   └── chat-cache.yaml       # Valkey (Redis-protocol) Resource
 │   └── components/
-│       ├── chat-cache.yaml       # Redis, as a plain component (see note below)
 │       ├── chat-gateway.yaml
 │       └── chat-agent.yaml
 ├── telco-services/               # Project: telco-services — system of record
@@ -49,11 +50,11 @@ customer/subscription/usage/incident data both `chat-agent`'s tools and (in a re
 back-office systems would read from. `chat-agent` is the one component that reaches across a
 project boundary — see **Verify the cross-project hop** below before you rely on it.
 
-`chat-cache` is deployed as a **plain Component** running a stock `redis:7-alpine` image, not
-OpenChoreo's `Resource`/`ClusterResourceType` abstraction — only a `postgres` ClusterResourceType is
-confirmed available on this workshop's install (see the doclet scenario), so Postgres uses that,
-and Redis uses the same self-contained pattern `samples/from-image/url-shortener` uses in the main
-OpenChoreo repo.
+`chat-cache` is a `Resource` bound to the `valkey` `ClusterResourceType` — confirmed available on
+this cluster alongside `postgres` and `nats`. Its Valkey instance always runs with a generated
+password (there's no config knob to disable auth), so `chat-gateway` binds the resource's `url`
+output (a full `redis://:<password>@host:6379` connection string) to `REDIS_URL` and parses it with
+`redis.ParseURL` — see `services/chat-gateway/config.go` / `main.go`.
 
 ## 1 — Build the images and load them into the cluster
 
@@ -99,7 +100,8 @@ kubectl apply -f telco-services/components/network-ops-service.yaml
 kubectl apply -f support-agent/project.yaml
 kubectl apply -f support-agent/resources/chat-db.yaml
 occ resource promote --env development chat-db
-kubectl apply -f support-agent/components/chat-cache.yaml
+kubectl apply -f support-agent/resources/chat-cache.yaml
+occ resource promote --env development chat-cache
 ```
 
 **Provide the OpenAI key** before deploying `chat-agent` — its Workload reads it from a Secret this
