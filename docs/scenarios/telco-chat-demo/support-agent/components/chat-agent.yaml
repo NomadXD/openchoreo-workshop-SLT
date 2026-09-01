@@ -1,0 +1,71 @@
+apiVersion: openchoreo.dev/v1alpha1
+kind: Component
+metadata:
+  name: chat-agent
+  namespace: default
+spec:
+  owner:
+    projectName: support-agent
+
+  componentType:
+    kind: ClusterComponentType
+    name: deployment/service
+  autoDeploy: true
+
+---
+apiVersion: openchoreo.dev/v1alpha1
+kind: Workload
+metadata:
+  name: chat-agent
+  namespace: default
+spec:
+  owner:
+    componentName: chat-agent
+    projectName: support-agent
+  endpoints:
+    http:
+      type: HTTP
+      port: 8080
+      # project-only: nothing outside support-agent calls chat-agent directly,
+      # only chat-gateway does.
+      visibility: [project]
+  dependencies:
+    endpoints:
+      # Cross-project hop into the telco-services project. This is the piece
+      # flagged as unverified-by-sample in the design doc — smoke-test it
+      # first (see the top-level README's "Verify the cross-project hop"
+      # section). If `namespace` visibility doesn't resolve as expected on
+      # your cluster, the one-line fallback is: change both these entries'
+      # `visibility` to `external` AND change the matching `visibility` on
+      # subscription-service / network-ops-service's own HTTP endpoints to
+      # `external`, then use their public URLs here as literal env values
+      # instead of envBindings.
+      - project: telco-services
+        component: subscription-service
+        name: http
+        visibility: namespace
+        envBindings:
+          address: SUBSCRIPTION_SERVICE_URL
+      - project: telco-services
+        component: network-ops-service
+        name: http
+        visibility: namespace
+        envBindings:
+          address: NETWORK_OPS_SERVICE_URL
+  container:
+    # Built locally — see ../../services/chat-agent/README.md.
+    image: telco-chat-demo/chat-agent:dev
+    env:
+      - key: PORT
+        value: "8080"
+      - key: OPENAI_MODEL
+        value: "gpt-4o-mini"
+      - key: OPENAI_API_KEY
+        valueFrom:
+          secretKeyRef:
+            # This Secret is NOT created by this manifest set — it must exist
+            # in chat-agent's rendered data-plane namespace before this
+            # Workload will start cleanly. See the top-level README's
+            # "Provide the OpenAI key" step.
+            name: chat-agent-openai
+            key: apiKey

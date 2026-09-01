@@ -1,0 +1,62 @@
+apiVersion: openchoreo.dev/v1alpha1
+kind: Project
+metadata:
+  annotations:
+    openchoreo.dev/description: >-
+      The system of record: subscription-service (BSS — accounts, plan
+      catalog, subscriptions) and network-ops-service (OSS — usage,
+      service-disruption reports). Owns telco-db.
+    openchoreo.dev/display-name: Telco Services
+  labels:
+    openchoreo.dev/name: telco-services
+  name: telco-services
+  namespace: default
+spec:
+  deploymentPipelineRef:
+    name: default
+  type:
+    kind: ClusterProjectType
+    name: default
+
+# ProjectReleaseBindings deploy the project to each pipeline environment and
+# own its cell namespaces. spec.projectRelease is left unset; the Project
+# controller seeds it once with the latest ProjectRelease.
+---
+apiVersion: openchoreo.dev/v1alpha1
+kind: ProjectReleaseBinding
+metadata:
+  name: telco-services-development
+  namespace: default
+  labels:
+    openchoreo.dev/project: telco-services
+    openchoreo.dev/environment: development
+spec:
+  owner:
+    projectName: telco-services
+  environment: development
+---
+apiVersion: openchoreo.dev/v1alpha1
+kind: ProjectReleaseBinding
+metadata:
+  name: telco-services-staging
+  namespace: default
+  labels:
+    openchoreo.dev/project: telco-services
+    openchoreo.dev/environment: staging
+spec:
+  owner:
+    projectName: telco-services
+  environment: staging
+---
+apiVersion: openchoreo.dev/v1alpha1
+kind: ProjectReleaseBinding
+metadata:
+  name: telco-services-production
+  namespace: default
+  labels:
+    openchoreo.dev/project: telco-services
+    openchoreo.dev/environment: production
+spec:
+  owner:
+    projectName: telco-services
+  environment: production

@@ -1,0 +1,42 @@
+apiVersion: openchoreo.dev/v1alpha1
+kind: Component
+metadata:
+  name: subscription-service
+  namespace: default
+spec:
+  owner:
+    projectName: telco-services
+
+  componentType:
+    kind: ClusterComponentType
+    name: deployment/service
+  autoDeploy: true
+
+---
+apiVersion: openchoreo.dev/v1alpha1
+kind: Workload
+metadata:
+  name: subscription-service
+  namespace: default
+spec:
+  owner:
+    componentName: subscription-service
+    projectName: telco-services
+  endpoints:
+    http:
+      type: HTTP
+      port: 8080
+      # namespace-visible so chat-agent, in the *support-agent* project, can
+      # reach it — see the cross-project note on chat-agent's Workload.
+      visibility: [namespace]
+  dependencies:
+    resources:
+      - ref: telco-db
+        envBindings:
+          url: DATABASE_URL
+  container:
+    # Built locally — see ../../services/subscription-service/README.md.
+    image: telco-chat-demo/subscription-service:dev
+    env:
+      - key: PORT
+        value: "8080"

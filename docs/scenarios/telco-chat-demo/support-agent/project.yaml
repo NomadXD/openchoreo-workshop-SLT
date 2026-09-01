@@ -1,0 +1,61 @@
+apiVersion: openchoreo.dev/v1alpha1
+kind: Project
+metadata:
+  annotations:
+    openchoreo.dev/description: >-
+      The conversational layer: chat-gateway (auth, sessions, streaming) and
+      chat-agent (the LangChain tool-router). Owns chat-db and chat-cache.
+    openchoreo.dev/display-name: Support Agent
+  labels:
+    openchoreo.dev/name: support-agent
+  name: support-agent
+  namespace: default
+spec:
+  deploymentPipelineRef:
+    name: default
+  type:
+    kind: ClusterProjectType
+    name: default
+
+# ProjectReleaseBindings deploy the project to each pipeline environment and
+# own its cell namespaces. spec.projectRelease is left unset; the Project
+# controller seeds it once with the latest ProjectRelease.
+---
+apiVersion: openchoreo.dev/v1alpha1
+kind: ProjectReleaseBinding
+metadata:
+  name: support-agent-development
+  namespace: default
+  labels:
+    openchoreo.dev/project: support-agent
+    openchoreo.dev/environment: development
+spec:
+  owner:
+    projectName: support-agent
+  environment: development
+---
+apiVersion: openchoreo.dev/v1alpha1
+kind: ProjectReleaseBinding
+metadata:
+  name: support-agent-staging
+  namespace: default
+  labels:
+    openchoreo.dev/project: support-agent
+    openchoreo.dev/environment: staging
+spec:
+  owner:
+    projectName: support-agent
+  environment: staging
+---
+apiVersion: openchoreo.dev/v1alpha1
+kind: ProjectReleaseBinding
+metadata:
+  name: support-agent-production
+  namespace: default
+  labels:
+    openchoreo.dev/project: support-agent
+    openchoreo.dev/environment: production
+spec:
+  owner:
+    projectName: support-agent
+  environment: production
