@@ -1,0 +1,58 @@
+apiVersion: openchoreo.dev/v1alpha1
+kind: Component
+metadata:
+  name: chat-gateway
+  namespace: default
+spec:
+  owner:
+    projectName: support-agent
+
+  componentType:
+    kind: ClusterComponentType
+    name: deployment/service
+  autoDeploy: true
+
+---
+apiVersion: openchoreo.dev/v1alpha1
+kind: Workload
+metadata:
+  name: chat-gateway
+  namespace: default
+spec:
+  owner:
+    componentName: chat-gateway
+    projectName: support-agent
+  endpoints:
+    http:
+      type: HTTP
+      port: 8080
+      visibility: [external]
+  dependencies:
+    endpoints:
+      - project: support-agent
+        component: chat-agent
+        name: http
+        visibility: project
+        envBindings:
+          address: CHAT_AGENT_URL
+      - project: support-agent
+        component: chat-cache
+        name: tcp
+        visibility: project
+        envBindings:
+          address: REDIS_ADDR
+    resources:
+      - ref: chat-db
+        envBindings:
+          url: DATABASE_URL
+  container:
+    # Built locally — see ../../services/chat-gateway/README.md for the build
+    # + image-import steps for your cluster.
+    image: telco-chat-demo/chat-gateway:dev
+    env:
+      - key: PORT
+        value: "8080"
+      - key: JWT_SECRET
+        # Demo-only literal. Replace with a valueFrom.secretKeyRef before
+        # this ever runs anywhere that matters.
+        value: "dev-secret-change-me"

@@ -1,0 +1,62 @@
+apiVersion: openchoreo.dev/v1alpha1
+kind: Project
+metadata:
+  annotations:
+    openchoreo.dev/description: >-
+      Vantage Mobile — customer and employee-facing chat frontends. No backend
+      logic lives here; both apps call chat-gateway in the support-agent
+      project directly.
+    openchoreo.dev/display-name: Portal
+  labels:
+    openchoreo.dev/name: portal
+  name: portal
+  namespace: default
+spec:
+  deploymentPipelineRef:
+    name: default
+  type:
+    kind: ClusterProjectType
+    name: default
+
+# ProjectReleaseBindings deploy the project to each pipeline environment and
+# own its cell namespaces. spec.projectRelease is left unset; the Project
+# controller seeds it once with the latest ProjectRelease.
+---
+apiVersion: openchoreo.dev/v1alpha1
+kind: ProjectReleaseBinding
+metadata:
+  name: portal-development
+  namespace: default
+  labels:
+    openchoreo.dev/project: portal
+    openchoreo.dev/environment: development
+spec:
+  owner:
+    projectName: portal
+  environment: development
+---
+apiVersion: openchoreo.dev/v1alpha1
+kind: ProjectReleaseBinding
+metadata:
+  name: portal-staging
+  namespace: default
+  labels:
+    openchoreo.dev/project: portal
+    openchoreo.dev/environment: staging
+spec:
+  owner:
+    projectName: portal
+  environment: staging
+---
+apiVersion: openchoreo.dev/v1alpha1
+kind: ProjectReleaseBinding
+metadata:
+  name: portal-production
+  namespace: default
+  labels:
+    openchoreo.dev/project: portal
+    openchoreo.dev/environment: production
+spec:
+  owner:
+    projectName: portal
+  environment: production

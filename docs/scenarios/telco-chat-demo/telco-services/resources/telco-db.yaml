@@ -1,0 +1,33 @@
+apiVersion: openchoreo.dev/v1alpha1
+kind: Resource
+metadata:
+  name: telco-db
+  namespace: default
+spec:
+  owner:
+    projectName: telco-services
+  type:
+    kind: ClusterResourceType
+    name: postgres
+  parameters:
+    database: telco
+
+---
+apiVersion: openchoreo.dev/v1alpha1
+kind: ResourceReleaseBinding
+metadata:
+  name: telco-db-development
+  namespace: default
+spec:
+  owner:
+    projectName: telco-services
+    resourceName: telco-db
+  environment: development
+  retainPolicy: Delete
+  # spec.resourceRelease intentionally unset. The Resource controller
+  # generates a ResourceRelease named telco-db-<hash>; promote this binding to
+  # that release with `occ resource promote --env development telco-db` (or by
+  # patching status.latestRelease.name onto this field directly) before
+  # subscription-service / network-ops-service's Workloads will find a
+  # DATABASE_URL to bind to. Both services share this one database — they
+  # own disjoint tables, not disjoint schemas.

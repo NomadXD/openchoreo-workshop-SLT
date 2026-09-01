@@ -1,0 +1,31 @@
+apiVersion: openchoreo.dev/v1alpha1
+kind: Resource
+metadata:
+  name: chat-db
+  namespace: default
+spec:
+  owner:
+    projectName: support-agent
+  type:
+    kind: ClusterResourceType
+    name: postgres
+  parameters:
+    database: supportagent
+
+---
+apiVersion: openchoreo.dev/v1alpha1
+kind: ResourceReleaseBinding
+metadata:
+  name: chat-db-development
+  namespace: default
+spec:
+  owner:
+    projectName: support-agent
+    resourceName: chat-db
+  environment: development
+  retainPolicy: Delete
+  # spec.resourceRelease intentionally unset. The Resource controller
+  # generates a ResourceRelease named chat-db-<hash>; promote this binding to
+  # that release with `occ resource promote --env development chat-db` (or by
+  # patching status.latestRelease.name onto this field directly) before
+  # chat-gateway's Workload will find a DATABASE_URL to bind to.

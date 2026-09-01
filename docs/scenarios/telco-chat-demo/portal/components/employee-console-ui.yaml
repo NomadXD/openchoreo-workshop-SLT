@@ -1,0 +1,38 @@
+apiVersion: openchoreo.dev/v1alpha1
+kind: Component
+metadata:
+  name: employee-console-ui
+  namespace: default
+spec:
+  owner:
+    projectName: portal
+
+  componentType:
+    kind: ClusterComponentType
+    name: deployment/web-application
+  autoDeploy: true
+
+---
+apiVersion: openchoreo.dev/v1alpha1
+kind: Workload
+metadata:
+  name: employee-console-ui
+  namespace: default
+spec:
+  owner:
+    componentName: employee-console-ui
+    projectName: portal
+  endpoints:
+    http:
+      type: HTTP
+      port: 8080
+      visibility: [external]
+  container:
+    # Built locally — see ../../services/employee-console-ui/README.md.
+    image: telco-chat-demo/employee-console-ui:dev
+    env:
+      # PLACEHOLDER — see the matching note in customer-portal-ui.yaml.
+      - key: CHAT_GATEWAY_HTTP_URL
+        value: "http://CHANGE-ME-chat-gateway-external-url"
+      - key: CHAT_GATEWAY_WS_URL
+        value: "ws://CHANGE-ME-chat-gateway-external-url"
