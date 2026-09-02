@@ -47,9 +47,8 @@ async function fetchJSON<T>(url: string, init?: RequestInit): Promise<T> {
 }
 
 export async function listCustomers(search?: string): Promise<CustomerSummary[]> {
-  const url = new URL('/customers', config.subscriptionServiceUrl);
-  if (search) url.searchParams.set('search', search);
-  return fetchJSON<CustomerSummary[]>(url.toString());
+  const qs = search ? `?${new URLSearchParams({ search }).toString()}` : '';
+  return fetchJSON<CustomerSummary[]>(`${config.subscriptionServiceUrl}/customers${qs}`);
 }
 
 // Composed client-side from three calls, one per backend concern — same
@@ -81,11 +80,12 @@ export interface ReportFilters {
 }
 
 export async function listReports(filters: ReportFilters = {}): Promise<Report[]> {
-  const url = new URL('/reports', config.networkOpsServiceUrl);
-  if (filters.status) url.searchParams.set('status', filters.status);
-  if (filters.category) url.searchParams.set('category', filters.category);
-  if (filters.customerId) url.searchParams.set('customerId', filters.customerId);
-  return fetchJSON<Report[]>(url.toString());
+  const params = new URLSearchParams();
+  if (filters.status) params.set('status', filters.status);
+  if (filters.category) params.set('category', filters.category);
+  if (filters.customerId) params.set('customerId', filters.customerId);
+  const qs = params.toString();
+  return fetchJSON<Report[]>(`${config.networkOpsServiceUrl}/reports${qs ? `?${qs}` : ''}`);
 }
 
 // Composed client-side: the report itself, plus this customer's other
