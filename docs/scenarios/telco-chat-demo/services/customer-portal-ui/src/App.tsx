@@ -49,14 +49,11 @@ export default function App() {
         </button>
       </header>
 
-      {/* DEMO HOOK — uncomment this banner live to show a source change go
-          from edit -> git push -> rebuild -> redeploy -> refresh, in front
-          of the audience. Nothing else needs to change for this to work. */}
-      {/*
+      
       <div className="promo-banner">
         🎉 New: the Unlimited plan now includes free roaming in 12 countries.
       </div>
-      */}
+     
 
       <ChatPanel items={items} status={status} isWaiting={isWaiting} onSend={sendMessage} />
     </div>
