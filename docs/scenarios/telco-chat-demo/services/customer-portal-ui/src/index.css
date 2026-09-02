@@ -178,6 +178,16 @@ select {
   font-size: 18px;
 }
 
+/* Demo hook — see the commented-out banner in App.tsx. */
+.promo-banner {
+  background: rgba(43, 95, 217, 0.08);
+  border: 1px solid rgba(43, 95, 217, 0.25);
+  border-radius: 12px;
+  padding: 14px 18px;
+  font-size: 14px;
+  color: var(--text);
+}
+
 button.secondary {
   background: var(--surface);
   border: 1px solid var(--border);
