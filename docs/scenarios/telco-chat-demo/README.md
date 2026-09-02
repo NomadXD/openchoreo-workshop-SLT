@@ -12,6 +12,53 @@ role.
 > **[workflow plane](../../installation/05-workflow-plane.md)** is *not* required here: every
 > component in this demo is deployed from a pre-built local image, not built from source.
 
+## Architecture
+
+```mermaid
+flowchart LR
+  cust([Customer browser])
+  emp([Employee browser])
+
+  subgraph portal["Project: portal"]
+    CPUI[customer-portal-ui]
+    ECUI[employee-console-ui]
+  end
+
+  subgraph support["Project: support-agent"]
+    GW[chat-gateway]
+    AGENT[chat-agent]
+    CDB[(chat-db)]
+    CCACHE[(chat-cache)]
+  end
+
+  subgraph telco["Project: telco-services"]
+    SUB[subscription-service]
+    NET[network-ops-service]
+    TDB[(telco-db)]
+  end
+
+  OPENAI[[OpenAI]]
+
+  cust -->|loads SPA| CPUI
+  emp -->|loads SPA| ECUI
+  cust -->|"WS /chat"| GW
+  emp -->|"WS /chat"| GW
+  emp -->|"dashboard reads/writes\ndirect, no auth"| SUB
+  emp -->|"dashboard reads/writes\ndirect, no auth"| NET
+
+  GW --> AGENT
+  GW --> CDB
+  GW --> CCACHE
+  AGENT -->|"tool calls\nnamespace visibility"| SUB
+  AGENT -->|"tool calls\nnamespace visibility"| NET
+  AGENT --> OPENAI
+
+  SUB --> TDB
+  NET --> TDB
+```
+
+Two things worth noticing: `employee-console-ui`'s Customers/Incidents tabs call `subscription-service`/`network-ops-service` **directly from the browser** — `chat-gateway` is chat-only, not a data proxy (see §6 below). And `chat-agent`'s tool calls into those same two services cross a project boundary (`support-agent` → `telco-services`) over `namespace` visibility — see **Verify the cross-project hop** below.
+
 ## Layout
 
 ```
