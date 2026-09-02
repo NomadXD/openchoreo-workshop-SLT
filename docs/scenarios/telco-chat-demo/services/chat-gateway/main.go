@@ -21,6 +21,7 @@ type Server struct {
 	rdb         *redis.Client
 	rateLimiter *RateLimiter
 	agentClient *AgentClient
+	backend     *BackendClient
 }
 
 func main() {
@@ -53,6 +54,7 @@ func main() {
 		rdb:         rdb,
 		rateLimiter: newRateLimiter(rdb),
 		agentClient: newAgentClient(cfg.ChatAgentURL),
+		backend:     newBackendClient(cfg.SubscriptionSvcURL, cfg.NetworkOpsSvcURL),
 	}
 
 	mux := http.NewServeMux()
@@ -63,6 +65,16 @@ func main() {
 	mux.HandleFunc("POST /api/auth/employee/login", srv.handleEmployeeLogin)
 	mux.HandleFunc("GET /api/conversations/{id}/messages", srv.handleGetConversationMessages)
 	mux.HandleFunc("GET /ws/chat", srv.handleWebSocket)
+
+	// Employee-only dashboard routes — everything below requires a valid
+	// employee-role JWT (see requireEmployee in handlers_dashboard.go) and
+	// proxies to subscription-service / network-ops-service, which no
+	// longer need to be reachable from outside the cluster at all.
+	mux.HandleFunc("GET /api/customers", srv.handleListCustomers)
+	mux.HandleFunc("GET /api/customers/{id}", srv.handleGetCustomerAccount)
+	mux.HandleFunc("GET /api/reports", srv.handleListReports)
+	mux.HandleFunc("GET /api/reports/{id}", srv.handleGetReport)
+	mux.HandleFunc("PATCH /api/reports/{id}", srv.handleUpdateReport)
 
 	httpServer := &http.Server{
 		Addr:              ":" + cfg.Port,

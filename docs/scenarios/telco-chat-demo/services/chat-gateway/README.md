@@ -3,17 +3,22 @@
 Browser-facing BFF for the telco chat demo. It handles mock login (issues JWTs), owns the
 WebSocket chat connection, persists conversations in Postgres, forwards each chat turn to the
 internal `chat-agent` service over HTTP, streams the response back to the browser, coordinates
-via Redis pub/sub, and writes an audit log for audited tool calls.
+via Redis pub/sub, and writes an audit log for audited tool calls. It also proxies the
+employee-only dashboard routes (`/api/customers`, `/api/reports/*`) to `subscription-service` and
+`network-ops-service` — the only reason those two services need to be reachable from here at all;
+neither is (or should be) reachable directly from a browser.
 
 ## Environment variables
 
-| Var              | Default                    | Notes                                                        |
-|-------------------|----------------------------|---------------------------------------------------------------|
-| `PORT`            | `8080`                     | HTTP/WS listen port                                            |
-| `DATABASE_URL`    | *(required)*               | Postgres DSN for chat-gateway's own `chat-db`                  |
-| `REDIS_URL`       | *(required)*               | Full Redis connection URL, e.g. `redis://:<password>@host:6379` — parsed with `redis.ParseURL`, so a password-protected instance (the `valkey` `Resource`) works the same as a bare no-auth one (`redis://host:6379`) |
-| `CHAT_AGENT_URL`  | *(required)*               | Base URL of the chat-agent service, e.g. `http://chat-agent:8080` |
-| `JWT_SECRET`      | `dev-secret-change-me`     | HMAC signing secret. A warning is logged if left unset — **do not rely on the default outside this demo.** |
+| Var                        | Default                    | Notes                                                        |
+|------------------------------|----------------------------|---------------------------------------------------------------|
+| `PORT`                      | `8080`                     | HTTP/WS listen port                                            |
+| `DATABASE_URL`              | *(required)*               | Postgres DSN for chat-gateway's own `chat-db`                  |
+| `REDIS_URL`                 | *(required)*               | Full Redis connection URL, e.g. `redis://:<password>@host:6379` — parsed with `redis.ParseURL`, so a password-protected instance (the `valkey` `Resource`) works the same as a bare no-auth one (`redis://host:6379`) |
+| `CHAT_AGENT_URL`            | *(required)*               | Base URL of the chat-agent service, e.g. `http://chat-agent:8080` |
+| `SUBSCRIPTION_SERVICE_URL`  | *(required for dashboard)* | Base URL of subscription-service — only the `/api/customers*` dashboard routes need this |
+| `NETWORK_OPS_SERVICE_URL`   | *(required for dashboard)* | Base URL of network-ops-service — only the `/api/reports*` dashboard routes need this |
+| `JWT_SECRET`                | `dev-secret-change-me`     | HMAC signing secret. A warning is logged if left unset — **do not rely on the default outside this demo.** |
 
 ## Local run
 
@@ -119,6 +124,39 @@ curl http://localhost:8080/api/conversations/conv-<uuid>/messages
 **Known simplification:** this endpoint performs no authorization check — any caller can read any
 conversation's messages by id. That's acceptable for this demo; a real deployment would need to
 verify the caller is the conversation's subject or an authorized employee before returning data.
+
+### Employee dashboard (auth required)
+
+Every route below requires `Authorization: Bearer <employee-role JWT>` — a missing/malformed
+header, an expired/invalid token, or a customer-role token all get `401`. Get one from
+`POST /api/auth/employee/login` above.
+
+```sh
+TOKEN=$(curl -s -X POST http://localhost:8080/api/auth/employee/login -d '{"agentId":"agent-007"}' | jq -r .token)
+
+# Search/list customers (subscription-service passthrough)
+curl -H "Authorization: Bearer $TOKEN" "http://localhost:8080/api/customers?search=cust"
+
+# One customer's full account: profile + subscription + last 7 days' usage + their reports
+curl -H "Authorization: Bearer $TOKEN" "http://localhost:8080/api/customers/cust-001"
+
+# Incidents list (all filters optional, combinable): status, category, customerId
+curl -H "Authorization: Bearer $TOKEN" "http://localhost:8080/api/reports?status=open"
+
+# One incident, plus a "related incidents" panel: this customer's other
+# reports, and other customers' reports in the same category
+curl -H "Authorization: Bearer $TOKEN" "http://localhost:8080/api/reports/rep-abc123"
+
+# Resolve/update one — proxied to network-ops-service AND written to
+# audit_log (actor, target customer, action="update_report", the body)
+curl -X PATCH -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d '{"status":"resolved","resolutionNotes":"Technician reset the tower"}' \
+  http://localhost:8080/api/reports/rep-abc123
+```
+
+`GET /api/customers/{id}` and `GET /api/reports/{id}` are each one call for the dashboard but
+several calls under the hood (composed server-side) — the whole point being that the browser never
+talks to `subscription-service`/`network-ops-service` directly.
 
 ## Design notes / deviations from the base contract
 

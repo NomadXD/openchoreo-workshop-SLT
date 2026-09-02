@@ -50,6 +50,7 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /healthz", healthz)
 	mux.HandleFunc("GET /customers/{id}/usage", s.getUsage)
+	mux.HandleFunc("GET /customers/{id}/usage/history", s.getUsageHistory)
 	mux.HandleFunc("POST /reports", s.createReport)
 	mux.HandleFunc("GET /reports", s.listReports)
 	mux.HandleFunc("GET /reports/{id}", s.getReport)

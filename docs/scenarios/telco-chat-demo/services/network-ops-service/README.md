@@ -43,6 +43,10 @@ curl -s localhost:8081/healthz
 ```sh
 # usage for a specific date (404 if there's no record for that exact date)
 curl -s 'localhost:8081/customers/cust-001/usage?date=2026-08-30'
+
+# most recent N days, oldest first (default 7, capped at 30) — for a
+# dashboard table/sparkline without looping single-date lookups
+curl -s 'localhost:8081/customers/cust-001/usage/history?days=7'
 ```
 
 ### Service reports
@@ -56,8 +60,11 @@ curl -s -X POST localhost:8081/reports \
 # list all reports
 curl -s localhost:8081/reports
 
-# filter by customer and/or status
+# filter by customer, status, and/or category (all combinable); excludeId
+# drops one report by id from the results — used for a "related incidents"
+# panel that shouldn't list the incident it's related to
 curl -s 'localhost:8081/reports?customerId=cust-001&status=open'
+curl -s 'localhost:8081/reports?category=connectivity&excludeId=rep-abcd1234'
 
 # get a single report
 curl -s localhost:8081/reports/rep-abcd1234
