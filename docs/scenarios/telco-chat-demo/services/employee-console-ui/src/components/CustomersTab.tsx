@@ -10,12 +10,11 @@ function formatPlan(plan: CustomerDetail['subscription']['plan']): string {
 }
 
 interface CustomersTabProps {
-  actorId: string;
   onOpenReport: (reportId: string) => void;
   onChatAbout: (customerId: string) => void;
 }
 
-export function CustomersTab({ actorId, onOpenReport, onChatAbout }: CustomersTabProps) {
+export function CustomersTab({ onOpenReport, onChatAbout }: CustomersTabProps) {
   const [search, setSearch] = useState('');
   const [customers, setCustomers] = useState<CustomerSummary[]>([]);
   const [listLoading, setListLoading] = useState(false);
@@ -30,7 +29,7 @@ export function CustomersTab({ actorId, onOpenReport, onChatAbout }: CustomersTa
     setListLoading(true);
     setListError(null);
     try {
-      setCustomers(await listCustomers(actorId, query));
+      setCustomers(await listCustomers(query));
     } catch (err) {
       setListError(err instanceof Error ? err.message : 'Failed to load customers');
     } finally {
@@ -49,7 +48,7 @@ export function CustomersTab({ actorId, onOpenReport, onChatAbout }: CustomersTa
     setDetailLoading(true);
     setDetailError(null);
     try {
-      setDetail(await getCustomerDetail(actorId, id));
+      setDetail(await getCustomerDetail(id));
     } catch (err) {
       setDetailError(err instanceof Error ? err.message : 'Failed to load customer');
     } finally {

@@ -6,7 +6,6 @@ import { StatusBadge } from './StatusBadge';
 const STATUSES: ReportStatus[] = ['open', 'in_progress', 'resolved'];
 
 interface IncidentsTabProps {
-  actorId: string;
   /** Set by a parent (e.g. "view this customer's report" from the
    * Customers tab) to force-open a specific report. Consumed once. */
   openReportId?: string | null;
@@ -23,7 +22,7 @@ function ReportRow({ report, onOpen }: { report: Report; onOpen: (id: string) =>
   );
 }
 
-export function IncidentsTab({ actorId, openReportId, onOpenReportConsumed }: IncidentsTabProps) {
+export function IncidentsTab({ openReportId, onOpenReportConsumed }: IncidentsTabProps) {
   const [statusFilter, setStatusFilter] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
   const [reports, setReports] = useState<Report[]>([]);
@@ -45,7 +44,7 @@ export function IncidentsTab({ actorId, openReportId, onOpenReportConsumed }: In
     setListError(null);
     try {
       setReports(
-        await listReports(actorId, {
+        await listReports({
           status: statusFilter || undefined,
           category: categoryFilter.trim() || undefined,
         }),
@@ -69,7 +68,7 @@ export function IncidentsTab({ actorId, openReportId, onOpenReportConsumed }: In
     setDetailLoading(true);
     setDetailError(null);
     try {
-      const d = await getReportDetail(actorId, id);
+      const d = await getReportDetail(id);
       setDetail(d);
       setStatusDraft(d.report.status);
       setNotesDraft(d.report.resolutionNotes ?? '');
@@ -94,7 +93,7 @@ export function IncidentsTab({ actorId, openReportId, onOpenReportConsumed }: In
     setSaving(true);
     setSaveError(null);
     try {
-      const updated = await updateReport(actorId, selectedId, {
+      const updated = await updateReport(selectedId, {
         status: statusDraft,
         resolutionNotes: notesDraft,
       });

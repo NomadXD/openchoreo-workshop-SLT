@@ -99,12 +99,11 @@ export default function App() {
       </nav>
 
       {activeTab === 'customers' && (
-        <CustomersTab actorId={agentId} onOpenReport={openReportInIncidents} onChatAbout={chatAboutCustomer} />
+        <CustomersTab onOpenReport={openReportInIncidents} onChatAbout={chatAboutCustomer} />
       )}
 
       {activeTab === 'incidents' && (
         <IncidentsTab
-          actorId={agentId}
           openReportId={jumpToReportId}
           onOpenReportConsumed={() => setJumpToReportId(null)}
         />
