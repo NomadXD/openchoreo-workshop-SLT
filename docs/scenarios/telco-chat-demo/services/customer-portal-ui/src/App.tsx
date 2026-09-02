@@ -49,11 +49,9 @@ export default function App() {
         </button>
       </header>
 
-      
-      <div className="promo-banner">
+      {/* <div className="promo-banner">
         🎉 New: the Unlimited plan now includes free roaming in 12 countries.
-      </div>
-     
+      </div> */}
 
       <ChatPanel items={items} status={status} isWaiting={isWaiting} onSend={sendMessage} />
     </div>
