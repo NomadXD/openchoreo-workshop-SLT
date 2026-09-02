@@ -58,7 +58,7 @@ func main() {
 	mux.HandleFunc("GET /customers/{id}/subscription", s.getSubscription)
 	mux.HandleFunc("POST /customers/{id}/subscription", s.setSubscription)
 
-	handler := withLogging(mux)
+	handler := withCORS(withLogging(mux))
 
 	httpServer := &http.Server{
 		Addr:    ":" + port,

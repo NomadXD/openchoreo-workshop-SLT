@@ -56,7 +56,7 @@ func main() {
 	mux.HandleFunc("GET /reports/{id}", s.getReport)
 	mux.HandleFunc("PATCH /reports/{id}", s.patchReport)
 
-	handler := withLogging(mux)
+	handler := withCORS(withLogging(mux))
 
 	httpServer := &http.Server{
 		Addr:    ":" + port,

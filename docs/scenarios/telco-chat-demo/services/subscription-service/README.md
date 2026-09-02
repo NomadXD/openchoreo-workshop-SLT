@@ -14,6 +14,11 @@ On startup the service runs an idempotent `CREATE TABLE IF NOT EXISTS` migration
 own tables (`customers`, `plans`, `subscriptions`) and seeds demo data only if a table is
 empty, so it's safe to restart against the same database.
 
+`employee-console-ui`'s Customers tab calls this service directly from the browser (chat-gateway
+is chat-only, not a data proxy — see the top-level demo README), so every response carries
+wide-open CORS headers (`Access-Control-Allow-Origin: *`, no credentials) and `OPTIONS` preflight
+requests get a `204` — see `cors.go`.
+
 ## Run locally
 
 ```sh
