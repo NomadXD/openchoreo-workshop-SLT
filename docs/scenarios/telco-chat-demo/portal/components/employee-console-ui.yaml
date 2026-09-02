@@ -36,3 +36,11 @@ spec:
         value: "http://CHANGE-ME-chat-gateway-external-url"
       - key: CHAT_GATEWAY_WS_URL
         value: "ws://CHANGE-ME-chat-gateway-external-url"
+      # The Customers/Incidents dashboard tabs call these two directly —
+      # chat-gateway is chat-only, it does not proxy them. Both must stay
+      # externally reachable (see telco-services/components/*.yaml) for
+      # this to work, since there's no other path from a browser to them.
+      - key: SUBSCRIPTION_SERVICE_URL
+        value: "http://CHANGE-ME-subscription-service-external-url"
+      - key: NETWORK_OPS_SERVICE_URL
+        value: "http://CHANGE-ME-network-ops-service-external-url"

@@ -154,7 +154,12 @@ kubectl apply -f portal/components/employee-console-ui.yaml
 
 Now find `chat-gateway`'s external URL (console, or `occ endpoint list --project support-agent
 --component chat-gateway`), patch it into both `portal/components/*.yaml` files in place of
-`CHANGE-ME-chat-gateway-external-url` (both the `http://` and `ws://` values), and re-apply:
+`CHANGE-ME-chat-gateway-external-url` (both the `http://` and `ws://` values). `employee-console-ui`
+needs two more patched in too — its Customers/Incidents tabs call `subscription-service` and
+`network-ops-service` **directly from the browser** (chat-gateway stays chat-only, it isn't a data
+proxy), so find their external URLs the same way and patch those in place of
+`CHANGE-ME-subscription-service-external-url` / `CHANGE-ME-network-ops-service-external-url`.
+Re-apply both:
 
 ```bash
 kubectl apply -f portal/components/customer-portal-ui.yaml
@@ -175,12 +180,18 @@ demo.
   subscription-service to see it actually changed, and `chat-db.audit_log` to see it was recorded.
 - *"I keep losing signal near Nugegoda, can you report it?"*
 
-**As an employee** (`employee-console-ui`, log in as `agent-007`, set "assisting customer" to
-`cust-002`):
-- *"Look up cust-003."*
-- *"Give me the full account for cust-002."*
-- *"Add a new plan: Streaming 50GB, 50GB, price 249900."*
-- *"Resolve the open connectivity report for cust-001, note that a technician reset the tower."*
+**As an employee** (`employee-console-ui`, log in as `agent-007`):
+- **Customers / Incidents tabs**: browse customers, open one's account (plan, usage, reports),
+  jump into an incident, check the related-incidents panel, resolve it with a note. These calls go
+  straight to `subscription-service`/`network-ops-service` — not audited beyond that request's
+  `X-Actor-Id` header in their server logs (see each service's README).
+- **Chat tab** (set "assisting customer" to `cust-002`):
+  - *"Look up cust-003."*
+  - *"Give me the full account for cust-002."*
+  - *"Add a new plan: Streaming 50GB, 50GB, price 249900."*
+  - *"Resolve the open connectivity report for cust-001, note that a technician reset the tower."*
+    — this path (through `chat-agent` → `chat-gateway`) **is** written to `chat-db.audit_log`,
+    unlike the same action taken from the Incidents tab directly.
 
 ## Teardown
 

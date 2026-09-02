@@ -383,6 +383,18 @@ first, copy its external URL, and set these two literal env vars on each fronten
 - `CHAT_GATEWAY_HTTP_URL` = `http://<chat-gateway's external host>`
 - `CHAT_GATEWAY_WS_URL` = `ws://<chat-gateway's external host>`
 
+**`employee-console-ui` needs two more, for the same reason** — its Customers/Incidents tabs call
+`subscription-service` and `network-ops-service` **directly from the browser**. This was a
+deliberate call: `chat-gateway` stays chat-only rather than growing into a general-purpose data
+proxy, which means both those services stay `external` (in addition to the `namespace` visibility
+`chat-agent` uses) and — since neither has any auth mechanism — reachable by anyone with the URL.
+Once you've deployed `subscription-service`/`network-ops-service` (§1.4–1.5), copy their external
+URLs and set:
+- `SUBSCRIPTION_SERVICE_URL` = `<subscription-service's external URL>`
+- `NETWORK_OPS_SERVICE_URL` = `<network-ops-service's external URL>`
+
+(`customer-portal-ui` doesn't need either — it's chat-only, no dashboard.)
+
 ### 4.4 Full demo script
 
 Once everything above is Active, seeded demo customers are `cust-001` Amara Perera, `cust-002`
@@ -395,11 +407,16 @@ Nadeesha Fernando, `cust-003` Kasun Silva, `cust-004` Ishara Jayawardena; any no
 - *"Upgrade me to the Unlimited plan."*
 - *"I keep losing signal near Nugegoda, can you report it?"*
 
-**As an employee** (log in as `agent-007` on `employee-console-ui`, assisting customer `cust-002`):
-- *"Look up cust-003."*
-- *"Give me the full account for cust-002."*
-- *"Add a new plan: Streaming 50GB, 50GB, price 249900."*
-- *"Resolve the open connectivity report for cust-001."*
+**As an employee** (log in as `agent-007` on `employee-console-ui`):
+- **Customers tab:** search for a customer, open one, check their plan/usage/reports, click a
+  report to jump straight to it in Incidents.
+- **Incidents tab:** filter to `open`, open cust-001's connectivity report, check the related
+  panel (other reports for cust-001, other connectivity reports elsewhere), set status to
+  `resolved` with a note, Save.
+- **Chat tab** (assisting customer `cust-002`):
+  - *"Look up cust-003."*
+  - *"Give me the full account for cust-002."*
+  - *"Add a new plan: Streaming 50GB, 50GB, price 249900."*
 
 ---
 

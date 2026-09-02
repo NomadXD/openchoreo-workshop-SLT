@@ -35,22 +35,6 @@ spec:
         visibility: project
         envBindings:
           address: CHAT_AGENT_URL
-      # Cross-project, same as chat-agent's own dependency on these two —
-      # backs the employee dashboard's /api/customers and /api/reports/*
-      # routes. Same unverified-by-sample namespace-visibility caveat and
-      # fallback as chat-agent's Workload.
-      - project: telco-services
-        component: subscription-service
-        name: subscription-api
-        visibility: namespace
-        envBindings:
-          address: SUBSCRIPTION_SERVICE_URL
-      - project: telco-services
-        component: network-ops-service
-        name: network-ops-api
-        visibility: namespace
-        envBindings:
-          address: NETWORK_OPS_SERVICE_URL
     resources:
       - ref: chat-db
         envBindings:

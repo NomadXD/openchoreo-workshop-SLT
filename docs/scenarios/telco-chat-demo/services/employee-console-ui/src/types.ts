@@ -37,3 +37,60 @@ export type TranscriptItem =
   | { id: string; kind: 'divider'; text: string };
 
 export type ConnectionStatus = 'connecting' | 'open' | 'closed' | 'error';
+
+// ---------- Employee console data model (customers / reports) ----------
+
+export interface CustomerSummary {
+  id: string;
+  name: string;
+  msisdn: string;
+  email: string;
+}
+
+export interface Plan {
+  id: string;
+  name: string;
+  dataGb: number | null;
+  priceCents: number;
+}
+
+export interface Subscription {
+  customerId: string;
+  plan: Plan;
+}
+
+export interface UsageEntry {
+  customerId: string;
+  date: string;
+  browsingMb: number;
+  streamingMb: number;
+  socialMb: number;
+  otherMb: number;
+  totalMb: number;
+}
+
+export type ReportStatus = 'open' | 'in_progress' | 'resolved';
+
+export interface Report {
+  id: string;
+  customerId: string;
+  category: string;
+  description: string;
+  status: ReportStatus;
+  resolutionNotes: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CustomerDetail {
+  profile: CustomerSummary;
+  subscription: Subscription;
+  usageHistory: UsageEntry[];
+  reports: Report[];
+}
+
+export interface ReportDetail {
+  report: Report;
+  relatedByCustomer: Report[];
+  relatedByCategory: Report[];
+}
